@@ -435,11 +435,15 @@ function Calendar() {
     }
 
     try {
-      const now = new Date().getTime();
+      // Seçili tarihin başlangıcını al (saat 00:00:00)
+      const selectedDate = new Date(selectedDateRange.start);
+      selectedDate.setHours(0, 0, 0, 0);
+      const timestamp = selectedDate.getTime();
+
       const eventData = {
         description: newEvent.description,
         category: newEvent.category,
-        timestamp: now,
+        timestamp: timestamp,
         userId: currentUser.uid
       };
 
