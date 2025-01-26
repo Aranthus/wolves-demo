@@ -79,20 +79,22 @@ function Calendar() {
   // Generate date ranges for the next 30 days (grouped by 1 day)
   const generateDateRanges = () => {
     const ranges = [];
-    const startDate = new Date(2025, 0, 1); // 
+    const today = new Date();
+    const startDate = new Date(today.getFullYear(), today.getMonth(), 1); // Ayın başından başla
+    const endDate = new Date(today.getFullYear() + 1, today.getMonth(), 0); // Bir yıl sonra
     
-    for (let i = 0; i < 365; i++) { // 
-      const date = new Date(startDate);
-      date.setDate(startDate.getDate() + i);
-      
+    let currentDate = new Date(startDate);
+    
+    while (currentDate <= endDate) {
       ranges.push({
-        start: date,
-        end: date,
-        label: date.toLocaleDateString('en-US', { 
+        start: new Date(currentDate),
+        end: new Date(currentDate),
+        label: currentDate.toLocaleDateString('en-US', { 
           day: 'numeric',
           month: 'long'
         })
       });
+      currentDate.setDate(currentDate.getDate() + 1);
     }
     return ranges;
   };
@@ -522,20 +524,21 @@ function Calendar() {
     });
   };
 
-  // 
+  // Tarih seçme işleyicisi
   const handleDateSelect = (date) => {
     setSelectedDateRange({
       start: date,
       end: new Date(date.getFullYear(), date.getMonth() + 1, 0)
     });
 
-    // 
+    // Scroll işlemini düzelt
     const container = scrollRef.current;
     if (container) {
       const buttons = container.getElementsByTagName('button');
-      const selectedButton = Array.from(buttons).find(
-        button => button.textContent.includes(dateFormat(date, 'd'))
-      );
+      const selectedButton = Array.from(buttons).find(button => {
+        const buttonDate = new Date(button.getAttribute('data-date'));
+        return isSameDay(buttonDate, date);
+      });
       
       if (selectedButton) {
         selectedButton.scrollIntoView({
@@ -622,36 +625,38 @@ function Calendar() {
             bgcolor: 'rgba(255,255,255,0.02)',
             scrollBehavior: 'smooth',
             '&::-webkit-scrollbar': {
-              display: 'none'  // 
+              display: 'none'
             },
-            msOverflowStyle: 'none',  // 
-            scrollbarWidth: 'none',   //
+            msOverflowStyle: 'none',
+            scrollbarWidth: 'none',
           }}
         >
-          {Array.from({ length: 30 }, (_, i) => {
-            const date = new Date(selectedDateRange.start);
-            date.setDate(date.getDate() - 15 + i);
+          {generateDateRanges().map((dateRange, i) => {
+            const date = dateRange.start;
             const isSelected = isSameDay(date, selectedDateRange.start);
             const isToday = isSameDay(date, new Date());
 
             return (
               <Button
                 key={i}
+                data-date={date.toISOString()}
                 onClick={() => handleDateSelect(date)}
                 sx={{
                   minWidth: '100px',
-                  height: '70px',
+                  height: '80px',
+                  p: 2,
                   mx: 0.5,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  borderRadius: 2,
+                  border: isSelected ? '2px solid' : '1px solid',
+                  borderColor: isSelected ? 'primary.main' : 'rgba(255,255,255,0.1)',
+                  bgcolor: isSelected ? 'rgba(157,92,233,0.1)' : 'rgba(255,255,255,0.02)',
                   color: 'white',
-                  bgcolor: isSelected ? 'primary.main' : 'transparent',
-                  border: isToday ? '1px solid rgba(255,255,255,0.2)' : 'none',
-                  borderRadius: 1,
                   '&:hover': {
-                    bgcolor: isSelected ? 'primary.dark' : 'rgba(255,255,255,0.1)'
+                    bgcolor: 'rgba(157,92,233,0.2)'
                   }
                 }}
               >
